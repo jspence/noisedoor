@@ -27,11 +27,13 @@ class NoisedoorBot(SingleServerIRCBot):
     def checkDoor(self):
         newstate = self.getDoorBit()
         if newstate != self.oldstate:
+            self.oldstate = newstate
             if newstate == self.OPEN:
-                lastopen = time()
+                self.lastopen = time()
             elif newstate == self.CLOSED:
-                duration = time() - lastopen
-                status = "Door opened for " + int(duration) + " seconds"
+                duration = time() - self.lastopen
+                status = "Door opened for %u seconds" % int(duration)
+                print "%s\n" % status
                 self.connection.notice('#noisebridge', status)
                 t.status_update(status)
 
@@ -42,7 +44,6 @@ class NoisedoorBot(SingleServerIRCBot):
         f = file("/dev/lp0")
         buf = array('i', [0])
         ioctl(f.fileno(), self.LPGETSTATUS, buf, 1)
-
         if buf[0] == 0x5f:
             ret = self.CLOSED
         else:
