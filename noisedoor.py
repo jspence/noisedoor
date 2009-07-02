@@ -5,7 +5,7 @@ from twyt.twitter import Twitter
 from threading import *
 from fcntl import ioctl
 from array import array
-from time import time
+import time
 import sys
 import os
 
@@ -18,6 +18,7 @@ class NoisedoorBot(SingleServerIRCBot):
     CLOSED = 0
     oldstate = CLOSED
     lastopen = 0.0
+    status = ""
 
     def __init__(self, channel, nickname, server, port=6667):
         SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
@@ -29,13 +30,16 @@ class NoisedoorBot(SingleServerIRCBot):
         if newstate != self.oldstate:
             self.oldstate = newstate
             if newstate == self.OPEN:
-                self.lastopen = time()
+                self.lastopen = time.time()
             elif newstate == self.CLOSED:
-                duration = time() - self.lastopen
-                status = "Door opened for %u seconds" % int(duration)
-                print "%s\n" % status
-                self.connection.notice('#noisebridge', status)
-                t.status_update(status)
+                duration = time.time() - self.lastopen
+                self.status = "Door opened for %u seconds" % int(duration)
+                print "%s" % self.status
+                #self.connection.privmsg('#noisebridge', self.status)
+                try:
+                    t.status_update(self.status)
+                except TwitterException, e:
+                    print "Problem with twitter: " + e.message
 
         self.t = Timer(1.0, self.checkDoor)
         self.t.start()
@@ -50,6 +54,11 @@ class NoisedoorBot(SingleServerIRCBot):
             ret = self.OPEN
         f.close()
         return ret
+
+    def on_pubmsg(self, c, e):
+        if e.arguments()[0].startswith(".lastopened"):
+            if self.lastopen > 0:
+                c.privmsg('#noisebridge', self.status + " at %s" % time.ctime(self.lastopen))
 
     def on_welcome(self, c, e):
         c.join(self.channel)
