@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from ircbot import SingleServerIRCBot
-from twyt.twitter import Twitter
+from twyt.twitter import Twitter, TwitterException
 from threading import *
 from fcntl import ioctl
 from array import array
