@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from irclib import irc_lower,nm_to_n
 from ircbot import SingleServerIRCBot
 from twyt.twitter import Twitter, TwitterException
 from threading import *
@@ -8,6 +9,7 @@ from array import array
 import time
 import sys
 import os
+import string
 
 t = Twitter()
 t.set_auth("noisedoor", "password")
@@ -55,10 +57,51 @@ class NoisedoorBot(SingleServerIRCBot):
         f.close()
         return ret
 
+
+    def reply(self, e, text):
+        if e.eventtype() == "pubmsg":
+            self.say_public("%s: %s" % (nm_to_n(e.source()), text))
+        else:
+            self.say_private(nm_to_n(e.source()), text)
+
+    def say_public(self, text):
+        "Print TEXT into public channel, for all to see."
+        for chname, chobj in self.channels.items():
+            self.connection.privmsg(self.channel, text)
+
+    def cmd_lastopened(self, args, e):
+        if self.lastopen > 0:
+            self.reply(e, self.status + " at %s" % time.ctime(self.lastopen))
+
+    def cmd_mdns(self, args, e):
+        f = file('mdns')
+        line = f.readline()
+        f.close()
+        self.reply(e, "mDNS workstation services I've seen lately: " + line)
+        
     def on_pubmsg(self, c, e):
-        if e.arguments()[0].startswith(".lastopened"):
-            if self.lastopen > 0:
-                c.privmsg('#noisebridge', self.status + " at %s" % time.ctime(self.lastopen))
+        a = string.split(e.arguments()[0], ":", 1)
+        if len(a) > 1 and irc_lower(a[0]) == irc_lower(c.get_nickname()):
+            self.do_command(e, string.strip(a[1]))
+
+    def cmd_loadavg(self, args, e):
+        self.reply(e, "Load: %.2f %.2f %.2f" % os.getloadavg())
+
+    def cmd_help(self, args, e):
+        cmds = [i[4:] for i in dir(self) if i.startswith('cmd_')]
+        self.reply(e, "Valid commands: '%s'" % "', '".join(cmds))
+
+    def do_command(self, e, cmd):
+        cmds = cmd.strip().split(" ")
+        try:
+            cmd_handler = getattr(self, "cmd_" + cmds[0])
+        except AttributeError:
+            cmd_handler = None
+        if cmd_handler:
+            cmd_handler(cmds[1:], e)
+            return
+
+        self.reply(e, "I don't understand '%s'."%(cmd))
 
     def on_welcome(self, c, e):
         c.join(self.channel)
