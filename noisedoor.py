@@ -69,6 +69,12 @@ class NoisedoorBot(SingleServerIRCBot):
         for chname, chobj in self.channels.items():
             self.connection.privmsg(self.channel, text)
 
+    def cmd_temperature(self, args, e):
+        f = file('temp')
+        line = f.readline()
+        f.close()
+        self.reply(e, line)
+
     def cmd_lastopened(self, args, e):
         if self.lastopen > 0:
             self.reply(e, self.status + " at %s" % time.ctime(self.lastopen))

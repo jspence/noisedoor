@@ -17,9 +17,14 @@ scan_bluetooth() {
 scan_IPs() {
     nmap -T5 -sP -oG $SCANNER_DIR/ips 172.30.0.16-254 >/dev/null 2>&1
 }
+
+scan_temp() {
+    echo "Disk temperature: `smartctl -a /dev/sda | awk '/^194/ { print $10 }'` degC" > $SCANNER_DIR/temp
+}
 while true; do
     scan_mdns
     scan_bluetooth
     scan_IPs
+    scan_temp
     sleep 60
 done
