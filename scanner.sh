@@ -6,7 +6,7 @@ SCANNER_DIR=.
 scan_mdns() {
    for host in `avahi-browse _workstation._tcp -t -p | cut -d\; -f4`; do 
        echo $host | sed -e 's/\\.*$//' | egrep -v '(pony|goat|zebra|voltron|noisebridge-greet|hippo)'
-   done | xargs echo > $SCANNER_DIR/mdns
+   done | xargs echo | tr -d  > $SCANNER_DIR/mdns
  
 }
 
