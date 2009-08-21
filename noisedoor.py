@@ -10,9 +10,20 @@ import time
 import sys
 import os
 import string
+import socket
+import SocketServer
 
 t = Twitter()
-t.set_auth("noisedoor", "password")
+try:
+    f = file("../../twitauth")
+    twitpass = f.readline()
+    f.close()
+    print "DEBUG: %s" % twitpass
+except Exception,e:
+    print e.message
+
+twitpass = twitpass.rstrip()
+t.set_auth("noisedoor", twitpass)
 
 class NoisedoorBot(SingleServerIRCBot):
     LPGETSTATUS = 0x060b
@@ -29,13 +40,21 @@ class NoisedoorBot(SingleServerIRCBot):
 
     def checkDoor(self):
         newstate = self.getDoorBit()
+        duration = int(time.time() - self.lastopen)
+        if self.oldstate == self.OPEN:
+            if duration == 1800:
+                self.say_public("Door has been open for more than half an hour, close it!")
+            elif duration == 600:
+                self.say_public("Door has been open for more than 10 minutes.")
+            elif duration == 300:
+                self.say_public("Door has been open for more than 5 minutes.")
+
         if newstate != self.oldstate:
             self.oldstate = newstate
             if newstate == self.OPEN:
                 self.lastopen = time.time()
             elif newstate == self.CLOSED:
-                duration = time.time() - self.lastopen
-                self.status = "Door opened for %u seconds" % int(duration)
+                self.status = "Door opened for %u seconds" % duration
                 print "%s" % self.status
                 #self.connection.privmsg('#noisebridge', self.status)
                 try:
@@ -69,7 +88,7 @@ class NoisedoorBot(SingleServerIRCBot):
         for chname, chobj in self.channels.items():
             self.connection.privmsg(self.channel, text)
 
-    def cmd_temperature(self, args, e):
+    def cmd_disktemp(self, args, e):
         f = file('temp')
         line = f.readline()
         f.close()
@@ -84,7 +103,13 @@ class NoisedoorBot(SingleServerIRCBot):
         line = f.readline()
         f.close()
         self.reply(e, "mDNS workstation services I've seen lately: " + line)
-        
+
+#    def cmd_eval(self, args, e):
+#        try:
+#            self.reply(e, eval(" ".join(args)))
+#        except Exception, ex:
+#            self.reply(e, ex.message)
+            
     def on_pubmsg(self, c, e):
         a = string.split(e.arguments()[0], ":", 1)
         if len(a) > 1 and irc_lower(a[0]) == irc_lower(c.get_nickname()):
@@ -115,13 +140,33 @@ class NoisedoorBot(SingleServerIRCBot):
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
 
+class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
+    def handle(self):
+        cur_thread = currentThread()
+        response = "%d" % self.server.bot.oldstate
+        self.request.send(response)
+
+class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+    def __init__(self, mixin, tcpserver, bot):
+        self.bot = bot
+        SocketServer.TCPServer.__init__(self, mixin, tcpserver)
 
 def main():
-    bot = NoisedoorBot("#noisebridge", "noisedoor", "irc.freenode.net", 6667)
+    HOST, PORT = "", 4545
+
+    bot = NoisedoorBot("#noisebridge-test", "noisedoor", "irc.freenode.net", 6667)
+    server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler, bot)
+    ip, port = server.server_address
+    server_thread = Thread(target=server.serve_forever)
+    server_thread.setDaemon(True)
+    server_thread.start()
+    print "Server loop running in thread:", server_thread.getName()
     bot.start()
 
 if __name__ == "__main__":
+
     main()
+
 
 
 #twitter() {
