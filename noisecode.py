@@ -53,7 +53,7 @@ class NoisecodeBot(SingleServerIRCBot):
                 self.reply(e, "Permission denied.")
                 return
             else:
-                self.reply(e, eval(cmd))
+                self.reply(e, eval(cmd).split("\n")[0])
 
         except Exception, ex:
             self.reply(e, ex.message)

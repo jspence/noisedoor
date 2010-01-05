@@ -35,6 +35,7 @@ class NoisecBot(SingleServerIRCBot):
         try:
 		p=subprocess.Popen(["/usr/bin/tcc", "-run", "-"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		rep=p.communicate("#include <errno.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <unistd.h>\nint main(void) {" + " ".join(args) + "}")[0]
+		rep = rep.split("\n")[0]
 
 	except _myc_exceptions.ProgrammingError, ex:
         	rep = ex[1]

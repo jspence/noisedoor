@@ -34,7 +34,7 @@ class NoiseElispBot(SingleServerIRCBot):
     def cmd_eval(self, args, e):
         try:
 		p=subprocess.Popen(["/usr/bin/emacs", "--batch", "--no-init-file", "--no-site-file", "--exec", " ".join(args)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		rep=p.communicate(None)[1]
+		rep=p.communicate(None)[1].split("\n")[0]
 
 	except _myc_exceptions.ProgrammingError, ex:
         	rep = ex[1]

@@ -35,7 +35,7 @@ class NoisejsBot(SingleServerIRCBot):
         try:
 		p=subprocess.Popen(["/home/j/v8/d8", "-e", " ".join(args)], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		
-		rep=p.communicate(None)[0]
+		rep=p.communicate(None)[0].split("\n")[0]
 
         except Exception, ex:
 		rep = str(ex)

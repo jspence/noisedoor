@@ -49,6 +49,7 @@ class NoisesqlBot(SingleServerIRCBot):
 					rep = o[0]
 			else:
 				rep=str(o)
+		rep = rep.split("\n")[0]
 
 	except _mysql_exceptions.ProgrammingError, ex:
         	rep = ex[1]
