@@ -34,12 +34,10 @@ class NoisecodeBot(SingleServerIRCBot):
             forbidden=['close', 'smtp', 'url', 'http', 'socket', 'disconnect', 'irc', 'kick', 'die', 'kill', 'link', 'for', 'exec', 'while', 'eval', 'join', 'part', 'connection', 'exit']
             allowed=['dr_jesus', 'schoen']
             authorized=0
-            clean=0
+            clean=1
             for word in forbidden:
                 if cmd.lower().find(word) != -1:
-                    break
-                else:
-                    clean=1
+                    clean=0
 
             if not clean:
                 for user in allowed:
@@ -48,6 +46,8 @@ class NoisecodeBot(SingleServerIRCBot):
                         break
                 else:
                     authorized=0
+
+            print "DEBUG: authorized=%d clean=%d" % (authorized, clean)
 
             if not authorized and not clean:
                 self.reply(e, "Permission denied.")
@@ -93,54 +93,8 @@ class NoisecodeBot(SingleServerIRCBot):
         c.nick(c.get_nickname() + "_")
 
 def main():
-    bot = NoisecodeBot("#noisebridge", "noisecode", "irc.freenode.net", 6667)
+    bot = NoisecodeBot("#noisetest", "noisecode", "irc.freenode.net", 6667)
     bot.start()
 
 if __name__ == "__main__":
     main()
-
-
-
-#twitter() {
-#	curl -u noisedoor:password -d "status=$1" http://twitter.com/statuses/update.xml
-#}
-
-#getstatus() {
-#	if ./check | grep -q 5f; then
-#		s=0
-#	else
-#		s=1
-#	fi
-#}
-
-# getstatus
-# os=$s
-# s=$s
-
-# while true; do
-# 	getstatus
-# 	if test $s != $os; then
-# 		echo -n `date` >> log
-# 		echo "State change detected: $os->$s"
-# 		now=`date +%s`
-# 		date
-# 		if test $s = 1; then
-# 			lastopen=`date +%s`
-# 		else
-# 			if test -n "$lastopen"; then
-# 				duration=$(($now - $lastopen))
-# 				lastopen=""
-# 			fi
-# 			status="Door closed"
-# 			if test -n "$duration"; then
-# 				status="$status (open for $duration seconds)"
-# 			fi
-# 			twitter "$status"
-# 		fi
-# 	fi
-# 	if test -n "$lastopen" && test $(($lastopen + 90)) -lt "$now"; then
-# 		curl -u noisedoor:password -d "status=Someone left the door open!" http://twitter.com/statuses/update.xml
-# 		lastopen=""
-# 	fi
-# 	os=$s;
-# done
