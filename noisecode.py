@@ -31,7 +31,7 @@ class NoisecodeBot(SingleServerIRCBot):
     def cmd_eval(self, args, e):
         try:
             cmd=" ".join(args)
-            forbidden=['close', 'smtp', 'url', 'http', 'socket', 'disconnect', 'irc', 'kick', 'die', 'kill', 'link', 'for', 'exec', 'while', 'eval', 'join', 'part', 'connection']
+            forbidden=['close', 'smtp', 'url', 'http', 'socket', 'disconnect', 'irc', 'kick', 'die', 'kill', 'link', 'for', 'exec', 'while', 'eval', 'join', 'part', 'connection', 'exit']
             allowed=['dr_jesus', 'schoen']
             authorized=0
             clean=0
