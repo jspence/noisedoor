@@ -31,7 +31,7 @@ class NoisecodeBot(SingleServerIRCBot):
     def cmd_eval(self, args, e):
         try:
             cmd=" ".join(args)
-            forbidden=['close', 'smtp', 'url', 'http', 'socket', 'disconnect', 'irc', 'kick', 'die', 'kill', 'link', 'for', 'exec', 'while', 'eval', 'join', 'part', 'connection', 'exit']
+            forbidden=['close', 'smtp', 'url', 'http', 'socket', 'disconnect', 'irc', 'kick', 'die', 'kill', 'link', 'for', 'exec', 'while', 'eval', 'join', 'part', 'connection', 'exit', 'quit', 'system']
             allowed=['dr_jesus', 'schoen']
             authorized=0
             clean=1
@@ -53,7 +53,7 @@ class NoisecodeBot(SingleServerIRCBot):
                 self.reply(e, "Permission denied.")
                 return
             else:
-                self.reply(e, eval(cmd).split("\n")[0])
+                self.reply(e, str(eval(cmd)).split("\n")[0])
 
         except Exception, ex:
             self.reply(e, ex.message)
@@ -93,7 +93,7 @@ class NoisecodeBot(SingleServerIRCBot):
         c.nick(c.get_nickname() + "_")
 
 def main():
-    bot = NoisecodeBot("#noisetest", "noisecode", "irc.freenode.net", 6667)
+    bot = NoisecodeBot("#noisebridge", "noisecode", "irc.freenode.net", 6667)
     bot.start()
 
 if __name__ == "__main__":
