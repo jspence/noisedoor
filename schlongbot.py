@@ -43,6 +43,11 @@ class SchlongBot(SingleServerIRCBot):
 	finally:
 	        self.reply(e, rep)
 
+    def searchfor(self, c, e, key):
+        doc = lxml.html.parse('http://chan4chan.com/archive/search/' + key)
+        results = filter(lambda x: x.get('href').find('http://img.chan4chan.com/', 0) != -1, doc.xpath('//a'))
+        self.reply(e, random.choice(results).get('href'))
+
     def on_pubmsg(self, c, e):
         if nm_to_n(e.source()).find("noise") != -1:
             return
@@ -50,11 +55,13 @@ class SchlongBot(SingleServerIRCBot):
         if len(a) > 1 and irc_lower(a[0]) == irc_lower(c.get_nickname()):
             self.do_command(e, string.strip(a[1]))
             return
-        if e.arguments()[0].find('schlong') != -1:
-            doc = lxml.html.parse('http://chan4chan.com/archive/search/penis')
-            results = filter(lambda x: not x.get('src').find('http://img.chan4chan.com/', 0), doc.xpath('//img'))
-            results = map(lambda x: x.get('src'), results)
-            self.reply(e, random.choice(results))
+
+        keywordmap=[['schlong', 'penis'],
+                    ['goatse', 'goatse'],
+                    ['cornholio', 'goatse']]
+        results=filter(lambda x: e.arguments()[0].find(x[0]) != -1, keywordmap)
+        if bool(results):
+            self.searchfor(c, e, results[0][1])
             return
 
     def on_privmsg(self, c, e):
