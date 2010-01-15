@@ -5,12 +5,17 @@ from ircbot import SingleServerIRCBot
 from threading import *
 from fcntl import ioctl
 from array import array
+from RestrictedPython import compile_restricted
+from RestrictedPython.Guards import safe_builtins
+import copy
 import time
 import sys
 import os
 import string
 import socket
-import SocketServer
+
+def getitem(self, key):
+    return self[key]
 
 class NoisecodeBot(SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667):
@@ -31,8 +36,8 @@ class NoisecodeBot(SingleServerIRCBot):
     def cmd_eval(self, args, e):
         try:
             cmd=" ".join(args)
-            forbidden=['close', 'smtp', 'url', 'http', 'socket', 'disconnect', 'irc', 'kick', 'die', 'kill', 'link', 'for', 'exec', 'while', 'eval', 'join', 'part', 'connection', 'exit', 'quit', 'system']
-            allowed=['dr_jesus', 'schoen']
+            forbidden=['getattr', 'locals', 'close', 'smtp', 'url', '/dev/', 'http', 'socket', 'disconnect', 'irc', 'kick', 'die', 'kill', 'link', 'for', 'exec', 'while', 'eval', 'join', 'part', 'connection', 'exit', 'quit', 'system', 'InteractiveInterpreter', 'runsource', 'InteractiveConsole', 'setattr']
+            allowed=['dr_jesus', 'schoen', 'wiretapped']
             authorized=0
             clean=1
             for word in forbidden:
@@ -53,10 +58,12 @@ class NoisecodeBot(SingleServerIRCBot):
                 self.reply(e, "Permission denied.")
                 return
             else:
-                self.reply(e, str(eval(cmd)).split("\n")[0])
+                c=compile_restricted(cmd, '<string>', 'eval')
+                reply=str(eval(c, dict(__builtins__ = safe_builtins, _getattr_=getattr, _getitem_=getitem)))
+                self.reply(e, reply.split("\n")[0])
 
         except Exception, ex:
-            self.reply(e, ex.message)
+            self.reply(e, str(ex))
             
     def on_pubmsg(self, c, e):
         if nm_to_n(e.source()).find("noise") != -1:
