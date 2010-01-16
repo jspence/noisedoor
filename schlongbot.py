@@ -58,7 +58,10 @@ class SchlongBot(SingleServerIRCBot):
 
         keywordmap=[['schlong', 'penis'],
                     ['goatse', 'goatse'],
-                    ['cornholio', 'goatse']]
+                    ['cornholio', 'goatse'],
+                    ['cunt', 'vagina'],
+                    ['twat', 'vagina'],
+                    ['pussy', 'vainga']]
         results=filter(lambda x: e.arguments()[0].find(x[0]) != -1, keywordmap)
         if bool(results):
             self.searchfor(c, e, results[0][1])
