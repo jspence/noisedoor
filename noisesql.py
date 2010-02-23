@@ -49,7 +49,7 @@ class NoisesqlBot(SingleServerIRCBot):
 					rep = o[0]
 			else:
 				rep=str(o)
-		rep = rep.split("\n")[0]
+		rep = str(rep).split("\n")[0]
 
 	except _mysql_exceptions.ProgrammingError, ex:
         	rep = ex[1]
@@ -64,6 +64,8 @@ class NoisesqlBot(SingleServerIRCBot):
         a = string.split(e.arguments()[0], ":", 1)
         if len(a) > 1 and irc_lower(a[0]) == irc_lower(c.get_nickname()):
             self.do_command(e, string.strip(a[1]))
+        if irc_lower(e.arguments()[0]).find(".sql") == 0:
+            self.cmd_eval(e.arguments()[0].strip().split(" ")[1:], e)
 
     def on_privmsg(self, c, e):
         if nm_to_n(e.source()) == "NickServ":
