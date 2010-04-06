@@ -19,7 +19,7 @@ import lxml.etree
 import urllib
 import random
 
-class SchlongBot(SingleServerIRCBot):
+class NoisecopBot(SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667):
         SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         self.channel = channel
@@ -35,18 +35,16 @@ class SchlongBot(SingleServerIRCBot):
         for chname, chobj in self.channels.items():
             self.connection.privmsg(self.channel, text)
 
-    def cmd_eval(self, args, e):
-        try:
-                rep = "schlong " + e.arguments()[0]
-        except Exception, ex:
-		rep = str(ex)
-	finally:
-	        self.reply(e, rep)
+    def cmd_op(self, args, e):
+        self.connection.mode(nm_to_n(e.source()), "+o")
 
-    def searchfor(self, c, e, key):
-        doc = lxml.html.parse('http://chan4chan.com/archive/search/' + key)
-        results = filter(lambda x: x.get('href').find('http://img.chan4chan.com/', 0) != -1, doc.xpath('//a'))
-        self.reply(e, random.choice(results).get('href'))
+    def on_ctcp(self, c, e):
+        if e.arguments()[0] == "VERSION":
+            doc = lxml.html.parse('http://www.insult-o-matic.com/insults/?format=&yourname=dick&numinsults=10&mode=shakespeare')
+            results = doc.xpath('//form//td/font')
+            insult = lxml.html.tostring(results[0], method='text')
+            insult = insult.split("\n")[2]
+            c.kick(self.channel, nm_to_n(e.source()), insult)
 
     def on_pubmsg(self, c, e):
         if nm_to_n(e.source()).find("noise") != -1:
@@ -54,31 +52,6 @@ class SchlongBot(SingleServerIRCBot):
         a = string.split(e.arguments()[0], ":", 1)
         if len(a) > 1 and irc_lower(a[0]) == irc_lower(c.get_nickname()):
             self.do_command(e, string.strip(a[1]))
-            return
-
-        keywordmap=[['schlong', 'penis'],
-                    ['goatse', 'goatse'],
-                    ['cornholio', 'goatse'],
-                    ['cunt', 'vagina'],
-                    ['twat', 'vagina'],
-                    ['pussy', 'vagina'],
-                    ['dongbot', 'robot'],
-                    ['balls', 'balls'],
-                    ['wtf', 'japan'],
-                    ['tallywhacker', 'penis'],
-                    ['johnson', 'penis'],
-                    ['peter', 'penis'],
-                    ['pecker', 'penis'],
-                    ['dick', 'penis'],
-                    ['wang', 'penis'],
-                    ['willy', 'penis'],
-                    ['trouser snake', 'penis'],
-                    ['lower horn', 'penis'],
-                    ['third leg', 'penis'],
-                    ['one eyed willy', 'penis']]
-        results=filter(lambda x: e.arguments()[0].find(x[0]) != -1, keywordmap)
-        if bool(results):
-            self.searchfor(c, e, results[0][1])
             return
 
     def on_privmsg(self, c, e):
@@ -109,7 +82,7 @@ class SchlongBot(SingleServerIRCBot):
         c.nick(c.get_nickname() + "_")
 
 def main():
-    bot = SchlongBot("#noisebridge", "schlongbot", "irc.freenode.net", 6667)
+    bot = NoisecopBot("#noisetest", "noisecop2", "irc.freenode.net", 6667)
     bot.start()
 
 if __name__ == "__main__":
