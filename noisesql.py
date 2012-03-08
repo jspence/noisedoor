@@ -34,8 +34,14 @@ class NoisesqlBot(SingleServerIRCBot):
 
     def cmd_eval(self, args, e):
         try:
-	    	db = MySQLdb.connect(host="localhost", user="noisesql", db="noisesql")
             	cmd=" ".join(args)
+		forbidden = ["sleep", "prepare", "execute"]
+		for word in forbidden:
+			if cmd.find(word) >= 0:
+				rep = "This is a big no-no!"
+				return
+
+	    	db = MySQLdb.connect(host="localhost", user="noisesql", db="noisesql")
 		c = db.cursor()
 		c.execute(cmd)
 		o = c.fetchall()
